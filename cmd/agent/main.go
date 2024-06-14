@@ -1,37 +1,18 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"path/filepath"
-	"time"
+	"os"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
+	"github.com/mateoops/k8s-roa/pkg/cmd/agent/root"
 )
 
 func main() {
-	kubeconfigPath := filepath.Join(homedir.HomeDir(), ".kube", "config")
 
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+	rootCmd, err := root.NewCmdRoot()
 	if err != nil {
-		panic(err.Error())
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
-	for {
-		pods, err := clientset.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
-		if err != nil {
-			panic(err.Error())
-		}
-		for _, pod := range pods.Items {
-			fmt.Println("Pod: ", pod.Name)
-		}
-		time.Sleep(30 * time.Second)
-	}
+	rootCmd.Execute()
 }
