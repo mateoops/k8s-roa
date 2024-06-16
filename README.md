@@ -7,7 +7,7 @@
 
 ---
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mateoops_k8s-roa&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mateoops_k8s-roa) 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=mateoops_k8s-roa&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=mateoops_k8s-roa) [![Go Report Card](https://goreportcard.com/badge/github.com/mateoops/k8s-roa)](https://goreportcard.com/report/github.com/mateoops/k8s-roa)
 
 ## About
 The Kubernetes Resource Optimization Advisor (k8s-roa) is a tool designed to help optimize the resource allocation for Kubernetes workloads. By analyzing the actual usage patterns of CPU, memory, and other resources, the tool provides recommendations for adjusting resource requests and limits, thereby improving cluster efficiency and reducing costs.
