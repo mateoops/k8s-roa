@@ -5,6 +5,7 @@ import (
 	"os"
 
 	kubernetesHandler "github.com/mateoops/k8s-roa/handlers/kubernetes"
+	prometheusHandler "github.com/mateoops/k8s-roa/handlers/prometheus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -22,6 +23,8 @@ func NewCmdRun() *cobra.Command {
 					kubernetes := kubernetesHandler.NewKubernetesHandler()
 					kubernetes.ListNodes()
 					kubernetes.ListNodesMetrics()
+
+					prometheusHandler.ExposePrometheusMetrics(viper.GetString("prometheusEndpoint"), viper.GetInt("prometheusPort"))
 
 				} else if authMode == "native" {
 					fmt.Println("Native auth option not supported yet.")
