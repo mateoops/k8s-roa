@@ -24,7 +24,8 @@ func NewCmdRun() *cobra.Command {
 					kubernetes.ListNodes()
 					kubernetes.ListNodesMetrics()
 
-					prometheusHandler.ExposePrometheusMetrics(viper.GetString("prometheusEndpoint"), viper.GetInt("prometheusPort"))
+					prometheus := prometheusHandler.NewPrometheusHandler()
+					prometheus.ExposeMetrics()
 
 				} else if authMode == "native" {
 					fmt.Println("Native auth option not supported yet.")

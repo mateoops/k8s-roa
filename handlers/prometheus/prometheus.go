@@ -8,15 +8,20 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/spf13/viper"
 )
 
-// TODO: its'a only a test
+type PrometheusHandler struct {
+	endpoint *string
+	port     *string
+}
 
 var opsProcessed = promauto.NewCounter(prometheus.CounterOpts{
 	Name: "roa_some_counter",
 	Help: "Description of this counter",
 })
 
+// TODO: Change this mock to real metrics
 func recordMetrics() {
 	go func() {
 		for {
@@ -26,12 +31,17 @@ func recordMetrics() {
 	}()
 }
 
-func ExposePrometheusMetrics(endpoint string, port int) {
+func NewPrometheusHandler() *PrometheusHandler {
+	endpoint := viper.GetString("prometheusEndpoint")
+	port := ":" + strconv.Itoa(viper.GetInt("prometheusPort"))
+
+	return &PrometheusHandler{endpoint: &endpoint, port: &port}
+}
+
+func (prometheusHandler *PrometheusHandler) ExposeMetrics() {
 
 	recordMetrics()
 
-	portAsString := ":" + strconv.Itoa(port)
-
-	http.Handle(endpoint, promhttp.Handler())
-	http.ListenAndServe(portAsString, nil)
+	http.Handle(*prometheusHandler.endpoint, promhttp.Handler())
+	http.ListenAndServe(*prometheusHandler.port, nil)
 }
