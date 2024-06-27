@@ -21,8 +21,13 @@ func NewCmdRun() *cobra.Command {
 					fmt.Println("Starting agent...")
 
 					kubernetes := kubernetesHandler.NewKubernetesHandler()
-					kubernetes.ListNodes()
-					kubernetes.ListNodesMetrics()
+					nodes := kubernetes.ListNodes()
+					for _, node := range nodes {
+						fmt.Println("Node: ", node.Name)
+						metrics := kubernetes.GetNodeUsageMetrics(node.Name)
+						fmt.Println("CPU usage: ", metrics.CpuUsage, "m")
+						fmt.Println("Memory usage: ", metrics.MemoryUsage, "MB")
+					}
 
 					prometheus := prometheusHandler.NewPrometheusHandler()
 					prometheus.ExposeMetrics()

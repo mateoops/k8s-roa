@@ -2,9 +2,9 @@ package kubernetes
 
 import (
 	"context"
-	"fmt"
 	"path/filepath"
 
+	"github.com/mateoops/k8s-roa/handlers/prometheus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -33,28 +33,26 @@ func NewKubernetesHandler() *KubernetesHandler {
 	return &KubernetesHandler{clientSet: clientSet, metricsClientSet: metricsClientSet}
 }
 
-func (kubernetesHandler *KubernetesHandler) ListNodes() {
+func (kubernetesHandler *KubernetesHandler) ListNodes() []prometheus.NodeMetrics {
 	nodes, err := kubernetesHandler.clientSet.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		panic(err.Error())
 	}
+	var nodesList []prometheus.NodeMetrics
 	for _, node := range nodes.Items {
-		fmt.Println("Node: ", node.Name)
+		nodesList = append(nodesList, prometheus.NodeMetrics{Name: node.Name})
 	}
+	return nodesList
 }
 
-func (kubernetesHandler *KubernetesHandler) ListNodesMetrics() {
-	nodes, err := kubernetesHandler.clientSet.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
+func (kubernetesHandler *KubernetesHandler) GetNodeUsageMetrics(nodeName string) prometheus.NodeUsageMetrics {
+	metrics, err := kubernetesHandler.metricsClientSet.MetricsV1beta1().NodeMetricses().Get(context.TODO(), nodeName, metav1.GetOptions{})
 	if err != nil {
 		panic(err.Error())
 	}
-	for _, node := range nodes.Items {
-		fmt.Println("Node: ", node.Name)
-		metrics, err := kubernetesHandler.metricsClientSet.MetricsV1beta1().NodeMetricses().Get(context.TODO(), node.Name, metav1.GetOptions{})
-		if err != nil {
-			panic(err.Error())
-		}
-		fmt.Println(metrics)
-	}
-
+	// CPU usage measured in millicpu (1000 millicpu = 1cpu)
+	cpuUsage := metrics.Usage.Cpu().AsDec().UnscaledBig().Int64() / 1024 / 1024
+	// Memory usage measured in MB
+	memoryUsage := metrics.Usage.Memory().MilliValue() / 1024 / 1024 / 1024
+	return prometheus.NodeUsageMetrics{CpuUsage: cpuUsage, MemoryUsage: memoryUsage}
 }
