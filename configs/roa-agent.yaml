@@ -1,3 +1,6 @@
 authMode: kube-config # kube-config / native
-prometheusPort: 2222
+prometheusEndpointPort: 2222
 prometheusEndpoint: /metrics
+
+prometheusServerAdress: "10.20.30.48"
+prometheusServerPort: 30001

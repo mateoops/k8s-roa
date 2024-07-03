@@ -33,7 +33,7 @@ func recordMetrics() {
 
 func NewPrometheusHandler() *PrometheusHandler {
 	endpoint := viper.GetString("prometheusEndpoint")
-	port := ":" + strconv.Itoa(viper.GetInt("prometheusPort"))
+	port := ":" + strconv.Itoa(viper.GetInt("prometheusEndpointPort"))
 
 	return &PrometheusHandler{endpoint: &endpoint, port: &port}
 }
