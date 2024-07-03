@@ -12,8 +12,8 @@ import (
 )
 
 type PrometheusHandler struct {
-	endpoint *string
-	port     *string
+	metricsEndpoint *string
+	metricsPort     *string
 }
 
 var opsProcessed = promauto.NewCounter(prometheus.CounterOpts{
@@ -35,13 +35,13 @@ func NewPrometheusHandler() *PrometheusHandler {
 	endpoint := viper.GetString("prometheusEndpoint")
 	port := ":" + strconv.Itoa(viper.GetInt("prometheusEndpointPort"))
 
-	return &PrometheusHandler{endpoint: &endpoint, port: &port}
+	return &PrometheusHandler{metricsEndpoint: &endpoint, metricsPort: &port}
 }
 
 func (prometheusHandler *PrometheusHandler) ExposeMetrics() {
 
 	recordMetrics()
 
-	http.Handle(*prometheusHandler.endpoint, promhttp.Handler())
-	http.ListenAndServe(*prometheusHandler.port, nil)
+	http.Handle(*prometheusHandler.metricsEndpoint, promhttp.Handler())
+	http.ListenAndServe(*prometheusHandler.metricsPort, nil)
 }
