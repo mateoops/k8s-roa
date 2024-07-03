@@ -7,4 +7,5 @@ type NodeMetrics struct {
 type NodeUsageMetrics struct {
 	CpuUsage    int64
 	MemoryUsage int64
+	Node        NodeMetrics
 }

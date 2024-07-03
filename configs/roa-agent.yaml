@@ -1,3 +1,6 @@
 authMode: kube-config # kube-config / native
+
 prometheusEndpointPort: 2222
 prometheusEndpoint: /metrics
+
+scrapInterval: 5
