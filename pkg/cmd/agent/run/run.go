@@ -59,9 +59,8 @@ func NewCmdRun() *cobra.Command {
 					}()
 
 					prometheus := prometheusHandler.NewPrometheusHandler()
-					prometheus.ExposeMetrics()
-
 					fmt.Println("Agent is running!")
+					prometheus.ExposeMetrics()
 
 				} else if authMode == "native" {
 					fmt.Println("Native auth option not supported yet.")
