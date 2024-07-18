@@ -13,19 +13,33 @@ import (
 )
 
 var (
-	prometheusMemoryGauge = prometheus.NewGaugeVec(
+	prometheusNodeMemoryGauge = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "roa_nodes",
 			Name:      "memory_usage",
 		},
 		[]string{"node"})
 
-	prometheusCpuGauge = prometheus.NewGaugeVec(
+	prometheusPodMemoryGauge = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "roa_pods",
+			Name:      "memory_usage",
+		},
+		[]string{"namespace", "pod", "container"})
+
+	prometheusNodeCpuGauge = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "roa_nodes",
 			Name:      "cpu_usage",
 		},
 		[]string{"node"})
+
+	prometheusPodCpuGauge = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "roa_pods",
+			Name:      "cpu_usage",
+		},
+		[]string{"namespace", "pod", "container"})
 )
 
 func NewCmdRun() *cobra.Command {
@@ -39,8 +53,10 @@ func NewCmdRun() *cobra.Command {
 					fmt.Println("Starting agent...")
 
 					// register Prometheus gauges
-					prometheus.MustRegister(prometheusCpuGauge)
-					prometheus.MustRegister(prometheusMemoryGauge)
+					prometheus.MustRegister(prometheusNodeCpuGauge)
+					prometheus.MustRegister(prometheusNodeMemoryGauge)
+					prometheus.MustRegister(prometheusPodMemoryGauge)
+					prometheus.MustRegister(prometheusPodCpuGauge)
 
 					kubernetes := kubernetesHandler.NewKubernetesHandler()
 					interval := time.Duration(viper.GetInt("scrapInterval"))
@@ -50,11 +66,24 @@ func NewCmdRun() *cobra.Command {
 							nodes := kubernetes.ListNodes()
 							for _, node := range nodes {
 								metrics := kubernetes.GetNodeUsageMetrics(node.Name)
-								prometheusCpuGauge.WithLabelValues(node.Name).Add(float64(metrics.CpuUsage))
-								prometheusMemoryGauge.WithLabelValues(node.Name).Add(float64(metrics.MemoryUsage))
-
-								time.Sleep(interval * time.Second)
+								prometheusNodeCpuGauge.WithLabelValues(node.Name).Add(float64(metrics.CpuUsage))
+								prometheusNodeMemoryGauge.WithLabelValues(node.Name).Add(float64(metrics.MemoryUsage))
 							}
+							time.Sleep(interval * time.Second)
+						}
+					}()
+
+					go func() {
+						for {
+							pods := kubernetes.ListPods()
+							for _, pod := range pods {
+								metricsPod := kubernetes.GetPodUsageMetrics(pod.Name, pod.Namespace)
+								for _, metricsContainer := range metricsPod {
+									prometheusPodCpuGauge.WithLabelValues(pod.Namespace, pod.Name, metricsContainer.Container.Name).Add(float64(metricsContainer.CpuUsage))
+									prometheusPodMemoryGauge.WithLabelValues(pod.Namespace, pod.Name, metricsContainer.Container.Name).Add(float64(metricsContainer.MemoryUsage))
+								}
+							}
+							time.Sleep(interval * time.Second)
 						}
 					}()
 
