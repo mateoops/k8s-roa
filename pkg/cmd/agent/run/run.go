@@ -40,6 +40,8 @@ var (
 			Name:      "cpu_usage",
 		},
 		[]string{"namespace", "pod", "container"})
+
+	ignoredNamespaces []string
 )
 
 func NewCmdRun() *cobra.Command {
@@ -57,6 +59,7 @@ func NewCmdRun() *cobra.Command {
 
 					kubernetes := kubernetesHandler.NewKubernetesHandler()
 					interval := time.Duration(viper.GetInt("scrapInterval"))
+					viper.UnmarshalKey("ignoredNamespaces", &ignoredNamespaces)
 
 					// scrap metrics
 					go scrapNodesMetrics(kubernetes, interval)
@@ -100,7 +103,7 @@ func scrapNodesMetrics(kubernetes *kubernetesHandler.KubernetesHandler, interval
 
 func scrapPodsMetrics(kubernetes *kubernetesHandler.KubernetesHandler, interval time.Duration) {
 	for {
-		pods := kubernetes.ListPods()
+		pods := kubernetes.ListPods(ignoredNamespaces)
 		for _, pod := range pods {
 			metricsPod := kubernetes.GetPodUsageMetrics(pod.Name, pod.Namespace)
 			for _, metricsContainer := range metricsPod {

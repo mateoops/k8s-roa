@@ -4,3 +4,6 @@ prometheusEndpointPort: 2222
 prometheusEndpoint: /metrics
 
 scrapInterval: 5
+
+ignoredNamespaces:
+- kube-system
